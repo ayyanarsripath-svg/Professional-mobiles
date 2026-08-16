@@ -1,0 +1,44 @@
+name: Build Flutter APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          unzip -o professional_mobiles.zip -d project
+          
+      - name: Find Flutter project
+        run: |
+          find project -name pubspec.yaml -print
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: |
+          cd "$(dirname "$(find project -name pubspec.yaml | head -1)")"
+          flutter pub get
+
+      - name: Build APK
+        run: |
+          cd "$(dirname "$(find project -name pubspec.yaml | head -1)")"
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: professional-mobiles-apk
+          path: project/**/build/app/outputs/flutter-apk/app-release.apk
